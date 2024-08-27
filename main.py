@@ -77,19 +77,10 @@ industries = [{"Construction": ["Carpentry", "Plumbing", "Electrical work"]},
 {"Personal Services": ["Hair salons", "Barber shops"]}]
 states_of_interest = ["California", "New Jersey", "New York", "Texas"]
 
-# https://www.citysearch.com/profile/21109923 #todo use this for website link scraping
-
 def switch(el):
     pos1, pos2 = el.split("/")
     return pos2 + ",%20" + pos1
 
-
-# old
-# business_details_dict = {
-#     entry.get_attribute("class"): entry.text
-#     for entry in business_details
-# }
-# business_details_dict["industry"] = industry
 def business_details_to_dict(business_details):
     business_details_dict = {}
 
@@ -109,6 +100,8 @@ def business_details_to_dict(business_details):
         else:
             business_details_dict[class_name] = entry.text
 
+    business_details_dict["industry"] = industry
+
     return business_details_dict
 
 #######################
@@ -120,11 +113,9 @@ df.loc[:, ["Country", "State"]] = df.loc[:, ["Country", "State"]].ffill()
 ########################
 # navigating to the front page of CitySearch
 ########################
-
 options = webdriver.ChromeOptions()
 options.add_argument("--headless=new")
 driver = webdriver.Chrome(options=options)
-# driver = webdriver.Chrome()
 driver.get("https://www.citysearch.com/")
 
 ########################
@@ -151,11 +142,6 @@ test = []
 
 for state in states: # full state name
 
-    # todo need to edit this part
-    #   instead of getting city keys from groups, simply get all the links of the cities within that state from city links
-    # old
-    # state_cities = grouped_states.get_group(state)["City"]
-    # new
     pattern = re.compile(f".*/{us_state_to_abbrev[state]}/.*", re.IGNORECASE)
     where_params = [switch(param) for param in [link.replace("https://www.citysearch.com/", "") for link in city_links if bool(pattern.match(link))]]
 
@@ -163,19 +149,12 @@ for state in states: # full state name
     print(state)
     print(where_params)
 
-
-    # todo need to edit this part
-    #   instead of doing industry for each state/city, just use the same industry each time
-    #   also I don't think I need this part anymore
-    # state_industries = grouped_states.get_group(state)["Industry"]
-    # state_abbrev = us_state_to_abbrev[state]
-
     # for city in state_cities:
     for where_param in where_params[0:2]:
 
         business_list = []
 
-        for industry in [list(industry.keys())[0] for industry in industries]: # todo change this for full implementation
+        for industry in [list(industry.keys())[0] for industry in industries]:
             print(where_param, state, industry)
             url = f"https://www.citysearch.com/results?term={industry.strip().replace(' ', '%20')}&where={where_param}"
             print("-------------------------", url, "----------------------------")
@@ -191,16 +170,16 @@ for state in states: # full state name
             job_cards = driver.find_elements(By.CSS_SELECTOR, "div.list-container > div.card > a")
             job_cards_links = [job.get_attribute("href") for job in job_cards]
 
-            # visiting each job link for the current industry and scraping information
 
             if (len(job_cards_links) == 0): continue
 
+            # visiting each job link for the current industry and scraping information
             # for i in range(len(job_cards_links)): # todo uncomment this when implementing fully
             for i in range(5):
                 print(job_cards_links[i])
                 driver.get(job_cards_links[i])
 
-                # todo don't really think I need this try except block
+                # try except block to wait for page to load
                 try:
                     elem = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.CSS_SELECTOR, "div.business-details")))
@@ -209,23 +188,15 @@ for state in states: # full state name
 
                 # not sure if all business have all their contact info so creating a dictionary based on the class name and value
                 business_details = driver.find_elements(By.CSS_SELECTOR, 'div.business-details > *')
-
-                # todo do an if else statement...if class not external-links-container then normal else find a tag and get href
-                #   you will need to make a function actually, since not all external-links-containers have a tags
-                #   so I need to do try except find a and get href
-
-                # old
-                # business_details_dict = {
-                #     entry.get_attribute("class"): entry.text
-                #     for entry in business_details
-                # }
-                # business_details_dict["industry"] = industry
-
-                # new
                 business_details_dict = business_details_to_dict(business_details)
-                business_details_dict["industry"] = industry
+                print(business_details_dict)
 
-                # rest
+                # todo after getting dict, check to see that it has external-links-container != ''
+                #   then run email script
+
+                # todo tryhing to move this into function, should work
+                #   erase after running, it works!
+                # business_details_dict["industry"] = industry
                 business_list.append(business_details_dict)
                 time.sleep(3)
 
