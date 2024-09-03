@@ -1,11 +1,3 @@
-# https://stackoverflow.com/questions/47316810/unable-to-locate-elements-on-webpage-with-headless-chrome
-# "https://stackoverflow.com/questions/25491872/request-geturl-returns-empty-content"
-# "https://stackoverflow.com/questions/60416507/python-requests-not-getting-full-page"
-
-# test cases
-# https://www.citysearch.com/profile/16919645 job positing doesn't exist anymore
-
-
 import re
 import time
 import asyncio
@@ -19,7 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, WebDriverException, StaleElementReferenceException
 
-# todo move this dictionary to another script, importing not working for some reason
+
 us_state_to_abbrev = {
     "Alabama": "AL",
     "Alaska": "AK",
@@ -88,7 +80,7 @@ industries = [{"Construction": ["Carpentry", "Plumbing", "Electrical work"]},
               {"Retail": ["Boutiques", "Specialty stores", "Online shops"]},
               {"Food and Beverage": ["Restaurants", "Cafes", "Food trucks"]},
               {"Personal Services": ["Hair salons", "Barber shops"]}]
-states_of_interest = ["New Jersey", "New York", "Texas"]
+states_of_interest = ["California", "New Jersey", "New York", "Texas"]
 
 
 def switch(el):
@@ -129,8 +121,8 @@ def business_details_to_dict(driver, industry):
             else:
                 business_details_dict[class_name] = entry.text
 
-        except StaleElementReferenceException: #https://www.citysearch.com/profile/16919645
-            print("Stale reference exception")
+        except StaleElementReferenceException:
+            print("Error: Stale reference exception")
 
     return business_details_dict
 
@@ -150,14 +142,8 @@ async def html_to_string(url):
 
 
 async def get_email(url, email_set):
-    # print("getting emails")
-    # # todo try running with pattern in this function
-    # pattern = "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-    # body = await html_to_string(url)
-    # return re.findall(pattern, body)
-
     print("getting emails")
-    # todo try running with pattern in this function
+
     pattern = "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
     body = await html_to_string(url)
 
@@ -165,7 +151,6 @@ async def get_email(url, email_set):
         return
 
     emails = re.findall(pattern, body)
-    print("these were emails found: ", emails)
     email_set.update(emails)
 
 
@@ -184,7 +169,7 @@ async def get_email_from_contact(driver, url, email_set):
         await get_email(url_to_scrape, email_set)
 
     except (NoSuchElementException, TimeoutException, WebDriverException):
-        print("No contact page")
+        print("Error: No contact page")
         # return []
 
 
@@ -198,7 +183,8 @@ def get_job_cards_links(driver):
         job_cards_links = [job.get_attribute("href") for job in job_cards]
 
     except (NoSuchElementException, TimeoutException):
-        print("Timed out waiting for page to load: Most likely no job listing in this category")
+        print("Error: Timed out waiting for page to load. Most likely no job listing in this category")
+
         job_cards_links = []
 
     return job_cards_links
@@ -224,7 +210,7 @@ async def main():
     #######################
     # opening and cleaning xlsx file
     #######################
-    df = pd.read_excel("google_maps_keywords.xlsx")
+    df = pd.read_excel("assets/google_maps_keywords.xlsx")
     df.loc[:, ["Country", "State"]] = df.loc[:, ["Country", "State"]].ffill()
 
     ########################
@@ -249,12 +235,8 @@ async def main():
     chrome_options.add_argument('--disable-dev-shm-usage')
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--ignore-certificate-errors')
+
     driver = webdriver.Chrome(options=chrome_options)
-    # using headless makes some sites not work
-    # options = webdriver.ChromeOptions()
-    # options.add_argument("--headless=new")
-    # driver = webdriver.Chrome(options=options)
-    # driver = webdriver.Chrome()
     driver.get("https://www.citysearch.com/")
 
     ########################
@@ -264,10 +246,8 @@ async def main():
     cities = container.find_elements(By.CSS_SELECTOR, "li:not([class*='state']) > a")
     city_links = [city.get_attribute("href") for city in cities]
 
-    # todo erase below after testing
-    for state in states_of_interest:  # full state name
-    # for state in states:  # full state name
-
+    for state in states:  # using this loop to continue from where code stopped, if it encounters an error
+    # for state in states_of_interest:
         visited = set()
 
         pattern = re.compile(f".*/{us_state_to_abbrev[state]}/.*", re.IGNORECASE)
@@ -275,12 +255,9 @@ async def main():
                         [link.replace("https://www.citysearch.com/", "") for link in city_links if
                          bool(pattern.match(link))]]
 
-        # todo erase below after testing
-        # for where_param in where_params[0:2]:
         for where_param in where_params:
             business_list = []
 
-            # todo uncomment and erase below after testing
             for industry in [list(industry.keys())[0] for industry in industries]:
                 url = f"https://www.citysearch.com/results?term={industry.strip().replace(' ', '%20')}&where={where_param}"
 
@@ -295,7 +272,6 @@ async def main():
                     continue
 
                 # visiting each job link for the current industry and scraping information
-                # todo uncomment and erase below after testing
                 for job_cards_link in job_cards_links:
                     if job_cards_link in visited:
                         print('already visited skipping')
@@ -335,7 +311,7 @@ async def main():
 
                     print(business_details_dict)
                     business_list.append(business_details_dict)
-                    time.sleep(1)
+                    time.sleep(1) # there's a lot of waiting in between, don't think we need a long wait
 
             save_to_csv(business_list, where_param)
 
