@@ -71,16 +71,19 @@ us_state_to_abbrev = {
     "United States Minor Outlying Islands": "UM",
     "U.S. Virgin Islands": "VI",
 }
-industries = [{"Construction": ["Carpentry", "Plumbing", "Electrical work"]},
-              {"Manufacturing": ["Welding", "Machine operation", "Assembly line work"]},
-              {"Transportation": ["Truck driving", "Warehouse operations", "Forklift operation"]},
-              {"Logistics": []},
-              {"Automotive": ["Automotive repair", "Auto maintenance", "Auto Bodywork", "Tire services"]},
-              {"Maintenance and Repair": ["HVAC", "Appliance repair", "General maintenance"]},
-              {"Retail": ["Boutiques", "Specialty stores", "Online shops"]},
-              {"Food and Beverage": ["Restaurants", "Cafes", "Food trucks"]},
-              {"Personal Services": ["Hair salons", "Barber shops"]}]
-states_of_interest = ["California", "New Jersey", "New York", "Texas"]
+industries = [
+    # {"Construction": ["Carpentry", "Plumbing", "Electrical work"]},
+    # {"Manufacturing": ["Welding", "Machine operation", "Assembly line work"]},
+    {"Transportation": ["Truck driving", "Warehouse operations", "Forklift operation"]},
+    {"Logistics": []},
+    # {"Automotive": ["Automotive repair", "Auto maintenance", "Auto Bodywork", "Tire services"]},
+    # {"Maintenance and Repair": ["HVAC", "Appliance repair", "General maintenance"]},
+    # {"Retail": ["Boutiques", "Specialty stores", "Online shops"]},
+    # {"Food and Beverage": ["Restaurants", "Cafes", "Food trucks"]},
+    # {"Personal Services": ["Hair salons", "Barber shops"]}
+]
+# states_of_interest = ["California", "New Jersey", "New York", "Texas"]
+states_of_interest = ["California"]
 
 
 def switch(el):
