@@ -7,10 +7,10 @@ from selenium.webdriver.common.by import By
 
 
 #################################
-#------getting NJ zipcodes------#
+#------getting TX zipcodes------#
 
 driver = webdriver.Chrome()
-driver.get("https://www.zipcodestogo.com/New%20Jersey/")
+driver.get("https://www.zipcodestogo.com/Texas/")
 
 table_rows = driver.find_elements(By.CSS_SELECTOR, 'table.inner_table > tbody > tr')
 
@@ -29,11 +29,11 @@ for row in table_rows:
 
 print(zip_list)
 
-nj_zip_df = pd.DataFrame.from_dict(zip_list)
-nj_zip_df = nj_zip_df.iloc[2:, :]
+tx_zip_df = pd.DataFrame.from_dict(zip_list)
+tx_zip_df = tx_zip_df.iloc[2:, :]
 
-nj_zip_df = nj_zip_df.astype({'zip_code': str})
-nj_zip_df.dtypes
+tx_zip_df = tx_zip_df.astype({'zip_code': str})
+tx_zip_df.dtypes
 
 driver.close()
 
@@ -41,9 +41,9 @@ driver.close()
 #####################################
 #------combining state results------#
 
-path = './results'
+path = ''
 os.listdir(path)
-csv_list = [file for file in os.listdir(path) if file.endswith("_nj.csv")]
+csv_list = [file for file in os.listdir(path) if file.endswith("_tx.csv")]
 state_dfs = [pd.read_csv(path + '/' + csv_name) for csv_name in csv_list if os.stat(path + '/' + csv_name).st_size > 2]
 state_df = pd.concat(state_dfs) #1329
 state_df.reset_index(drop=True ,inplace=True)
@@ -74,7 +74,7 @@ state_df.dtypes
 #################################
 #------merging by zip code------#
 
-merge_list = [state_df, nj_zip_df]
+merge_list = [state_df, tx_zip_df]
 df_final = ft.reduce(lambda left, right: pd.merge(left, right, on='zip_code'), merge_list)
 
 ###################################
@@ -107,4 +107,4 @@ def highlight_high_score(row):
 # Apply the highlighting function to the DataFrame
 df_final.sort_values(by='address', inplace=True)
 styled_df = df_final.style.apply(highlight_high_score, axis=1)
-styled_df.to_excel('nj_final.xlsx', engine='openpyxl', index=False)
+styled_df.to_excel('tx_final.xlsx', engine='openpyxl', index=False)

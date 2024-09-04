@@ -72,18 +72,18 @@ us_state_to_abbrev = {
     "U.S. Virgin Islands": "VI",
 }
 industries = [
-    # {"Construction": ["Carpentry", "Plumbing", "Electrical work"]},
-    # {"Manufacturing": ["Welding", "Machine operation", "Assembly line work"]},
+    {"Construction": ["Carpentry", "Plumbing", "Electrical work"]},
+    {"Manufacturing": ["Welding", "Machine operation", "Assembly line work"]},
     {"Transportation": ["Truck driving", "Warehouse operations", "Forklift operation"]},
     {"Logistics": []},
-    # {"Automotive": ["Automotive repair", "Auto maintenance", "Auto Bodywork", "Tire services"]},
-    # {"Maintenance and Repair": ["HVAC", "Appliance repair", "General maintenance"]},
-    # {"Retail": ["Boutiques", "Specialty stores", "Online shops"]},
-    # {"Food and Beverage": ["Restaurants", "Cafes", "Food trucks"]},
-    # {"Personal Services": ["Hair salons", "Barber shops"]}
+    {"Automotive": ["Automotive repair", "Auto maintenance", "Auto Bodywork", "Tire services"]},
+    {"Maintenance and Repair": ["HVAC", "Appliance repair", "General maintenance"]},
+    {"Retail": ["Boutiques", "Specialty stores", "Online shops"]},
+    {"Food and Beverage": ["Restaurants", "Cafes", "Food trucks"]},
+    {"Personal Services": ["Hair salons", "Barber shops"]}
 ]
-# states_of_interest = ["California", "New Jersey", "New York", "Texas"]
-states_of_interest = ["California"]
+states_of_interest = ["California", "New Jersey", "New York", "Texas"]
+
 
 
 def switch(el):
@@ -287,7 +287,7 @@ async def main():
 
                     business_details_dict = business_details_to_dict(driver, industry)
 
-                    # todo when time, convert this to a function
+
                     try:
                         print('looking for additional details')
                         additional_info = WebDriverWait(driver, 5).until(

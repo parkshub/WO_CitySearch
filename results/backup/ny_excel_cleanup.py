@@ -7,10 +7,10 @@ from selenium.webdriver.common.by import By
 
 
 #################################
-#------getting CA zipcodes------#
+#------getting NY zipcodes------#
 
 driver = webdriver.Chrome()
-driver.get("https://www.zipcodestogo.com/California/")
+driver.get("https://www.zipcodestogo.com/New%20York/")
 
 table_rows = driver.find_elements(By.CSS_SELECTOR, 'table.inner_table > tbody > tr')
 
@@ -40,19 +40,13 @@ driver.close()
 #####################################
 #------combining state results------#
 
-# path = './results'
-path = './'
+path = ''
 os.listdir(path)
-csv_list = [file for file in os.listdir(path) if file.endswith("_ca.csv")]
+csv_list = [file for file in os.listdir(path) if file.endswith("_ny.csv")]
 state_dfs = [pd.read_csv(path + '/' + csv_name) for csv_name in csv_list if os.stat(path + '/' + csv_name).st_size > 2]
 state_df = pd.concat(state_dfs) #1329
 state_df.reset_index(drop=True ,inplace=True)
-
-# state_df.drop(['teaser', 'bullets-container'], inplace=True, axis=1)
-state_df = state_df[['industry', 'business name', 'address', 'external link', 'phone number', 'additional_info', 'emails', 'business hours']]
-
-
-
+state_df.drop(['teaser', 'bullets-container'], inplace=True, axis=1)
 state_df.dropna(subset=['business name', 'phone number'], how='all', inplace=True)
 state_df.dropna(subset=['address'], inplace=True)
 
@@ -74,7 +68,6 @@ state_df[~state_df['zip_code'].apply(
 
 state_df = state_df.astype({'zip_code': str})
 state_df.dtypes
-state_df['zip_code'].isna().sum()
 
 
 #################################
@@ -114,4 +107,4 @@ def highlight_high_score(row):
 # Apply the highlighting function to the DataFrame
 df_final.sort_values(by='address', inplace=True)
 styled_df = df_final.style.apply(highlight_high_score, axis=1)
-styled_df.to_excel('ca_final.xlsx', engine='openpyxl', index=False)
+styled_df.to_excel('ny_final.xlsx', engine='openpyxl', index=False)

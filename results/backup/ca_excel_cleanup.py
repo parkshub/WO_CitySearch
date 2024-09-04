@@ -7,10 +7,9 @@ from selenium.webdriver.common.by import By
 
 
 #################################
-#------getting TX zipcodes------#
-
+#------getting CA zipcodes------#
 driver = webdriver.Chrome()
-driver.get("https://www.zipcodestogo.com/Texas/")
+driver.get("https://www.zipcodestogo.com/California/")
 
 table_rows = driver.find_elements(By.CSS_SELECTOR, 'table.inner_table > tbody > tr')
 
@@ -29,32 +28,28 @@ for row in table_rows:
 
 print(zip_list)
 
-tx_zip_df = pd.DataFrame.from_dict(zip_list)
-tx_zip_df = tx_zip_df.iloc[2:, :]
-
-tx_zip_df = tx_zip_df.astype({'zip_code': str})
-tx_zip_df.dtypes
+ny_zip_df = pd.DataFrame.from_dict(zip_list)
+ny_zip_df = ny_zip_df.iloc[2:, :]
+ny_zip_df = ny_zip_df.astype({'zip_code': str})
+ny_zip_df.dtypes
 
 driver.close()
 
-
 #####################################
 #------combining state results------#
-
-path = './results'
+# path = './results'
+path = '../../'
 os.listdir(path)
-csv_list = [file for file in os.listdir(path) if file.endswith("_tx.csv")]
+csv_list = [file for file in os.listdir(path) if file.endswith("_ca.csv")]
 state_dfs = [pd.read_csv(path + '/' + csv_name) for csv_name in csv_list if os.stat(path + '/' + csv_name).st_size > 2]
 state_df = pd.concat(state_dfs) #1329
 state_df.reset_index(drop=True ,inplace=True)
-state_df.drop(['teaser'], inplace=True, axis=1)
+state_df = state_df[['industry', 'business name', 'address', 'external link', 'phone number', 'additional_info', 'emails', 'business hours']]
 state_df.dropna(subset=['business name', 'phone number'], how='all', inplace=True)
 state_df.dropna(subset=['address'], inplace=True)
 
-
 #################################
 #------extracting zip code------#
-
 zip_code_pattern = re.compile("\d{5}(-\d{4})?$")
 
 state_df['zip_code'] = state_df.apply(
@@ -69,29 +64,15 @@ state_df[~state_df['zip_code'].apply(
 
 state_df = state_df.astype({'zip_code': str})
 state_df.dtypes
-
+state_df['zip_code'].isna().sum()
 
 #################################
 #------merging by zip code------#
-
-merge_list = [state_df, tx_zip_df]
+merge_list = [state_df, ny_zip_df]
 df_final = ft.reduce(lambda left, right: pd.merge(left, right, on='zip_code'), merge_list)
-
-###################################
-#------cleaning up dataframe------#
-
-
-########################################
-#------getting population by_city_results------#
-
-
-#################################
-#------filter major cities------#
-
 
 ################################
 #------finding duplicates------#
-
 # finding duplicates
 df_final['address'].value_counts()
 rows = df_final.loc[df_final.duplicated(subset=['address'], keep=False)]
@@ -107,4 +88,4 @@ def highlight_high_score(row):
 # Apply the highlighting function to the DataFrame
 df_final.sort_values(by='address', inplace=True)
 styled_df = df_final.style.apply(highlight_high_score, axis=1)
-styled_df.to_excel('tx_final.xlsx', engine='openpyxl', index=False)
+styled_df.to_excel('ca_final.xlsx', engine='openpyxl', index=False)
